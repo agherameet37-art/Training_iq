@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrainIQ — Training Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #F0F4FF;
+  --surface: #FFFFFF;
+  --surface2: #F5F7FF;
+  --border: #DDE3F5;
+  --accent: #2563EB;
+  --accent2: #1D4ED8;
+  --accent-light: #EFF4FF;
+  --green: #059669;
+  --green-light: #ECFDF5;
+  --orange: #D97706;
+  --orange-light: #FFFBEB;
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --text: #1E293B;
+  --text2: #64748B;
+  --text3: #94A3B8;
+  --gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(37,99,235,0.1), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-lg: 0 20px 60px rgba(37,99,235,0.15), 0 8px 20px rgba(0,0,0,0.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ===== LOGIN ===== */
+#loginScreen{
+  position:fixed;inset:0;
+  background: linear-gradient(135deg, #EFF4FF 0%, #F0F4FF 50%, #EEF2FF 100%);
+  display:flex;align-items:center;justify-content:center;z-index:1000;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background-image: radial-gradient(circle at 20% 20%, rgba(37,99,235,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(124,58,237,0.06) 0%, transparent 50%);
+  pointer-events:none;
+}
+.login-card{
+  background:var(--surface);border-radius:24px;padding:2.5rem;width:440px;
+  box-shadow: var(--shadow-lg);
+  position:relative;animation:slideUp 0.5s ease;
+  border: 1px solid var(--border);
+}
+.login-logo{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;}
+.logo-icon{
+  width:44px;height:44px;background:var(--gradient);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  box-shadow:0 4px 12px rgba(37,99,235,0.3);
+}
+.logo-text{font-size:1.6rem;font-weight:800;color:var(--accent);letter-spacing:-0.03em;}
+.login-title{font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:0.3rem;letter-spacing:-0.02em;}
+.login-sub{font-size:0.85rem;color:var(--text2);margin-bottom:1.5rem;}
+.role-tabs{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:1.5rem;gap:4px;border:1px solid var(--border);}
+.role-tab{
+  flex:1;padding:0.65rem;border:none;border-radius:9px;font-size:0.82rem;font-weight:700;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;
+  color:var(--text2);background:transparent;
+}
+.role-tab.active{background:var(--gradient);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.3);}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin-bottom:0.45rem;}
+.form-input{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
+  padding:0.8rem 1rem;font-size:0.9rem;color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;outline:none;
+}
+.form-input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+.form-input::placeholder{color:var(--text3);}
+select.form-input{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
+}
+textarea.form-input{resize:vertical;min-height:80px;}
+.btn-primary{
+  width:100%;background:var(--gradient);border:none;border-radius:10px;padding:0.9rem;
+  font-size:0.95rem;font-weight:700;color:#fff;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:0.5rem;
+  box-shadow:0 4px 14px rgba(37,99,235,0.35);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,0.4);}
+.btn-primary:active{transform:translateY(0);}
+.login-hint{
+  font-size:0.74rem;color:var(--text3);text-align:center;margin-top:1rem;
+  background:var(--surface2);border-radius:8px;padding:0.7rem;line-height:1.6;
+}
+.login-error{
+  background:var(--red-light);border:1.5px solid #FCA5A5;border-radius:10px;
+  padding:0.75rem 1rem;font-size:0.82rem;color:var(--red);margin-bottom:1rem;display:none;
+  font-weight:500;
+}
+
+/* ===== MAIN APP ===== */
+#mainApp{display:none;min-height:100vh;}
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:248px;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+  box-shadow:2px 0 12px rgba(0,0,0,0.04);
+}
+.sidebar-header{
+  padding:1.5rem 1.25rem 1.25rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.75rem;
+}
+.sidebar-logo-icon{
+  width:36px;height:36px;background:var(--gradient);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+}
+.sidebar-logo-text{font-size:1.25rem;font-weight:800;color:var(--accent);letter-spacing:-0.03em;}
+.sidebar-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto;}
+.nav-section-label{
+  font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--text3);padding:0.5rem 0.75rem;margin-bottom:0.3rem;
+}
+.nav-item{
+  display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.75rem;border-radius:10px;
+  cursor:pointer;transition:all 0.15s;font-size:0.85rem;font-weight:600;
+  color:var(--text2);margin-bottom:0.1rem;border:1.5px solid transparent;
+}
+.nav-item:hover{background:var(--accent-light);color:var(--accent);}
+.nav-item.active{background:var(--accent-light);color:var(--accent);border-color:rgba(37,99,235,0.15);}
+.nav-item.locked{opacity:0.4;cursor:not-allowed;pointer-events:none;}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.nav-lock{font-size:0.7rem;margin-left:auto;color:var(--text3);}
+.sidebar-footer{padding:1rem 0.75rem;border-top:1px solid var(--border);}
+.admin-badge{
+  display:flex;align-items:center;gap:0.75rem;padding:0.85rem;
+  background:var(--accent-light);border-radius:12px;margin-bottom:0.6rem;
+  border:1px solid rgba(37,99,235,0.12);
+}
+.admin-avatar{
+  width:34px;height:34px;background:var(--gradient);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;font-weight:800;color:#fff;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(37,99,235,0.3);
+}
+.admin-avatar.user-av{background:linear-gradient(135deg,#059669,#047857);}
+.admin-name{font-size:0.82rem;font-weight:700;color:var(--text);}
+.admin-role{font-size:0.68rem;color:var(--text2);margin-top:1px;}
+.btn-logout{
+  width:100%;background:transparent;border:1.5px solid var(--border);border-radius:9px;
+  padding:0.55rem;font-size:0.78rem;font-weight:600;color:var(--text2);
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;
+}
+.btn-logout:hover{border-color:var(--red);color:var(--red);background:var(--red-light);}
+
+/* ===== MAIN CONTENT ===== */
+.main-content{margin-left:248px;min-height:100vh;padding:2rem;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-title{font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;}
+.page-subtitle{font-size:0.82rem;color:var(--text2);margin-top:0.2rem;font-weight:500;}
+.topbar-actions{display:flex;gap:0.75rem;align-items:center;}
+
+/* ===== STAT CARDS ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.stats-grid-user{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:1.4rem;position:relative;overflow:hidden;transition:all 0.2s;
+  box-shadow:var(--shadow);
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.stat-icon-wrap{
+  width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;margin-bottom:1rem;
+}
+.blue .stat-icon-wrap{background:#EFF4FF;}
+.purple .stat-icon-wrap{background:#F5F3FF;}
+.green .stat-icon-wrap{background:#ECFDF5;}
+.orange .stat-icon-wrap{background:#FFFBEB;}
+.stat-value{font-size:1.9rem;font-weight:800;color:var(--text);line-height:1;margin-bottom:0.3rem;letter-spacing:-0.03em;}
+.blue .stat-value{color:var(--accent);}
+.purple .stat-value{color:var(--purple);}
+.green .stat-value{color:var(--green);}
+.orange .stat-value{color:var(--orange);}
+.stat-label{font-size:0.75rem;color:var(--text2);font-weight:600;}
+
+/* ===== SECTION ===== */
+.section{display:none;}
+.section.active{display:block;animation:fadeIn 0.3s ease;}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);
+}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.card-title{font-size:1rem;font-weight:800;color:var(--text);letter-spacing:-0.01em;}
+.card-subtitle{font-size:0.75rem;color:var(--text2);margin-top:0.2rem;font-weight:500;}
+
+/* ===== FORMS ===== */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.form-full{grid-column:1/-1;}
+.form-group-inline{display:flex;flex-direction:column;gap:0.4rem;}
+.divider{height:1px;background:var(--border);margin:1.5rem 0;}
+
+/* ===== BUTTONS ===== */
+.btn-secondary{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
+  padding:0.65rem 1.2rem;font-size:0.82rem;font-weight:700;color:var(--text2);
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-accent{
+  background:var(--gradient);border:none;border-radius:10px;padding:0.65rem 1.4rem;
+  font-size:0.82rem;font-weight:700;color:#fff;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;
+  display:flex;align-items:center;gap:0.5rem;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.4);}
+.btn-green{
+  background:var(--green-light);border:1.5px solid #A7F3D0;border-radius:10px;
+  padding:0.65rem 1.2rem;font-size:0.82rem;font-weight:700;color:var(--green);
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.btn-green:hover{background:#D1FAE5;}
+.btn-orange{
+  background:var(--orange-light);border:1.5px solid #FDE68A;border-radius:10px;
+  padding:0.65rem 1.2rem;font-size:0.82rem;font-weight:700;color:var(--orange);
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.btn-orange:hover{background:#FEF3C7;}
+.btn-delete{
+  background:transparent;border:none;color:var(--text3);cursor:pointer;
+  padding:0.3rem 0.5rem;border-radius:6px;transition:all 0.15s;font-size:0.85rem;
+}
+.btn-delete:hover{color:var(--red);background:var(--red-light);}
+
+/* ===== TABLE ===== */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+thead tr{background:var(--surface2);}
+th{
+  padding:0.85rem 1rem;text-align:left;font-size:0.68rem;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+td{padding:0.85rem 1rem;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr{transition:background 0.15s;}
+tbody tr:hover{background:#FAFBFF;}
+
+.badge{display:inline-flex;align-items:center;padding:0.2rem 0.65rem;border-radius:999px;font-size:0.68rem;font-weight:700;}
+.badge-blue{background:#EFF4FF;color:var(--accent);}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-orange{background:var(--orange-light);color:var(--orange);}
+.badge-purple{background:var(--purple-light);color:var(--purple);}
+.score-bar{display:flex;align-items:center;gap:0.6rem;}
+.score-track{width:60px;height:5px;background:var(--bg);border-radius:999px;overflow:hidden;border:1px solid var(--border);}
+.score-fill{height:100%;border-radius:999px;}
+.table-actions{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;}
+.table-search{
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;
+  padding:0.6rem 1rem;font-size:0.82rem;color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;outline:none;width:240px;transition:all 0.2s;
+}
+.table-search:focus{border-color:var(--accent);background:var(--surface);}
+.table-search::placeholder{color:var(--text3);}
+.cert-link{color:var(--accent);text-decoration:none;font-size:0.78rem;font-weight:700;}
+.cert-link:hover{text-decoration:underline;}
+.empty-state{text-align:center;padding:3rem;color:var(--text3);}
+.empty-state .icon{font-size:2.5rem;margin-bottom:1rem;}
+.empty-state p{font-size:0.85rem;font-weight:500;}
+
+/* ===== INFO BOXES ===== */
+.info-box{
+  border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;
+  display:flex;align-items:flex-start;gap:0.75rem;font-size:0.83rem;font-weight:500;
+}
+.info-box.blue{background:var(--accent-light);border:1px solid rgba(37,99,235,0.15);color:var(--accent2);}
+.info-box.orange{background:var(--orange-light);border:1px solid #FDE68A;color:#92400E;}
+.info-box.green{background:var(--green-light);border:1px solid #A7F3D0;color:#065F46;}
+.info-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+
+/* ===== CHARTS ===== */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.mini-chart{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;box-shadow:var(--shadow);}
+.chart-bars{display:flex;align-items:flex-end;gap:0.5rem;height:80px;margin-top:1rem;}
+.chart-bar{flex:1;background:var(--gradient);border-radius:4px 4px 0 0;opacity:0.7;transition:opacity 0.2s;cursor:pointer;}
+.chart-bar:hover{opacity:1;}
+.chart-labels{display:flex;gap:0.5rem;margin-top:0.5rem;}
+.chart-label{flex:1;font-size:0.6rem;color:var(--text3);text-align:center;font-weight:600;}
+.vertical-bars{display:flex;flex-direction:column;gap:0.65rem;margin-top:1rem;}
+.v-bar-row{display:flex;align-items:center;gap:0.8rem;}
+.v-bar-label{font-size:0.72rem;color:var(--text2);width:70px;flex-shrink:0;font-weight:600;}
+.v-bar-track{flex:1;height:8px;background:var(--bg);border-radius:999px;overflow:hidden;border:1px solid var(--border);}
+.v-bar-fill{height:100%;border-radius:999px;background:var(--gradient);}
+.v-bar-val{font-size:0.72rem;color:var(--text2);width:28px;text-align:right;font-weight:700;}
+
+/* ===== WELCOME BANNER ===== */
+.welcome-banner{
+  background:var(--gradient);border-radius:16px;padding:1.5rem 2rem;
+  margin-bottom:1.5rem;color:#fff;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(37,99,235,0.3);
+}
+.wb-title{font-size:1.1rem;font-weight:800;letter-spacing:-0.01em;}
+.wb-sub{font-size:0.82rem;opacity:0.85;margin-top:0.3rem;}
+.wb-badge{background:rgba(255,255,255,0.2);border-radius:999px;padding:0.4rem 1rem;font-size:0.72rem;font-weight:700;border:1px solid rgba(255,255,255,0.3);}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;background:var(--surface);
+  border:1.5px solid var(--green);border-radius:12px;padding:1rem 1.5rem;
+  font-size:0.85rem;color:var(--green);font-weight:700;z-index:9999;
+  display:flex;align-items:center;gap:0.5rem;
+  transform:translateY(100px);opacity:0;transition:all 0.3s ease;
+  box-shadow:var(--shadow-md);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🎯</div>
+      <div class="logo-text">TrainIQ</div>
+    </div>
+    <h1 class="login-title">Welcome Back</h1>
+    <p class="login-sub">Select your role and sign in to continue</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" id="tabAdmin" onclick="switchRole('admin')">🛡 Administrator</button>
+      <button class="role-tab" id="tabUser" onclick="switchRole('user')">👤 Employee</button>
+    </div>
+
+    <div class="login-error" id="loginError">⚠️ Invalid credentials.</div>
+
+    <div class="form-group">
+      <label class="form-label">Name / Username</label>
+      <input type="text" class="form-input" id="loginUser" placeholder="Enter your name">
+    </div>
+    <div class="form-group" id="empIdGroup" style="display:none;">
+      <label class="form-label">Employee ID</label>
+      <input type="text" class="form-input" id="loginEmpId" placeholder="e.g. EMP001 or 2000183844">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" id="loginPass" placeholder="Enter password">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    <div class="login-hint" id="loginHint">
+      <strong>Admin:</strong> any name · password: <strong>admin123</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="mainApp">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon">🎯</div>
+      <div class="sidebar-logo-text">TrainIQ</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="admin-badge">
+        <div class="admin-avatar" id="sidebarAvatar">AD</div>
+        <div>
+          <div class="admin-name" id="sidebarName">—</div>
+          <div class="admin-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Sign Out</button>
+    </div>
+  </aside>
+  <main class="main-content" id="mainContent"></main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let trainings = JSON.parse(localStorage.getItem('tiq_trainings') || '[]');
+let employees = JSON.parse(localStorage.getItem('tiq_employees') || '[]');
+let currentRole = 'admin';
+let currentUser = null;
+
+// ===== ROLE SWITCH =====
+function switchRole(role) {
+  currentRole = role;
+  document.getElementById('tabAdmin').classList.toggle('active', role === 'admin');
+  document.getElementById('tabUser').classList.toggle('active', role === 'user');
+  document.getElementById('empIdGroup').style.display = role === 'user' ? 'block' : 'none';
+  document.getElementById('loginError').style.display = 'none';
+  const hint = document.getElementById('loginHint');
+  if (role === 'admin') {
+    hint.innerHTML = '<strong>Admin:</strong> any name &middot; password: <strong>admin123</strong>';
+  } else {
+    hint.innerHTML = '<strong>Employee:</strong> your name + Employee ID + password: <strong>pass123</strong>';
+  }
+}
+
+// ===== LOGIN =====
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  const empId = document.getElementById('loginEmpId').value.trim();
+  const errEl = document.getElementById('loginError');
+
+  function showErr(msg) { errEl.textContent = '⚠️ ' + msg; errEl.style.display = 'block'; }
+
+  if (!u) { showErr('Please enter your name.'); return; }
+  if (!p) { showErr('Please enter your password.'); return; }
+
+  if (currentRole === 'admin') {
+    if (p === 'admin123') {
+      currentUser = { role: 'admin', name: u, empId: null };
+      launchApp();
+    } else {
+      showErr('Incorrect password. Admin password is admin123.');
+    }
+  } else {
+    // Employee login
+    if (!empId) { showErr('Please enter your Employee ID.'); return; }
+    if (p !== 'pass123') { showErr('Incorrect password. Employee default password is pass123.'); return; }
+    // Find record by empId (flexible matching)
+    const emp = employees.find(e => e.empId.toString().toUpperCase() === empId.toString().toUpperCase());
+    if (emp) {
+      currentUser = { role: 'user', name: emp.name, empId: emp.empId };
+    } else {
+      // Allow login even if no record yet — show helpful empty state
+      currentUser = { role: 'user', name: u, empId: empId };
+    }
+    launchApp();
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  ['loginUser','loginPass','loginEmpId'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('loginError').style.display = 'none';
+  switchRole('admin');
+}
+
+function launchApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  const av = document.getElementById('sidebarAvatar');
+  av.textContent = currentUser.name.substring(0, 2).toUpperCase();
+  av.className = 'admin-avatar' + (currentUser.role === 'user' ? ' user-av' : '');
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Employee';
+  buildSidebar();
+  renderContent('overview');
+}
+
+// ===== SIDEBAR =====
+function buildSidebar() {
+  const isAdmin = currentUser.role === 'admin';
+  document.getElementById('sidebarNav').innerHTML = isAdmin ? `
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item active" onclick="renderContent('overview',this)"><span class="nav-icon">📊</span>Overview</div>
+    <div class="nav-item" onclick="renderContent('addTraining',this)"><span class="nav-icon">➕</span>Add Training</div>
+    <div class="nav-item" onclick="renderContent('addEmployee',this)"><span class="nav-icon">👤</span>Add Employee Record</div>
+    <div class="nav-section-label" style="margin-top:1rem;">Reports</div>
+    <div class="nav-item" onclick="renderContent('trainingReport',this)"><span class="nav-icon">📋</span>Training Report</div>
+    <div class="nav-item" onclick="renderContent('employeeReport',this)"><span class="nav-icon">🧑‍💼</span>Employee Training</div>
+  ` : `
+    <div class="nav-section-label">My Dashboard</div>
+    <div class="nav-item active" onclick="renderContent('overview',this)"><span class="nav-icon">📊</span>Overview</div>
+    <div class="nav-item" onclick="renderContent('myRecords',this)"><span class="nav-icon">🏆</span>My Training Records</div>
+    <div class="nav-section-label" style="margin-top:1rem;">View Only</div>
+    <div class="nav-item" onclick="renderContent('trainingReport',this)"><span class="nav-icon">📋</span>Training Schedule</div>
+    <div class="nav-section-label" style="margin-top:1rem;">Restricted</div>
+    <div class="nav-item locked"><span class="nav-icon">➕</span>Add Training<span class="nav-lock">🔒</span></div>
+    <div class="nav-item locked"><span class="nav-icon">🧑‍💼</span>All Employee Data<span class="nav-lock">🔒</span></div>
+  `;
+}
+
+// ===== RENDER =====
+function renderContent(page, navEl) {
+  document.querySelectorAll('.nav-item:not(.locked)').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  const mc = document.getElementById('mainContent');
+  const isAdmin = currentUser.role === 'admin';
+  if (page === 'overview') mc.innerHTML = isAdmin ? adminOverview() : userOverview();
+  else if (page === 'addTraining' && isAdmin) mc.innerHTML = addTrainingPage();
+  else if (page === 'addEmployee' && isAdmin) mc.innerHTML = addEmployeePage();
+  else if (page === 'trainingReport') mc.innerHTML = trainingReportPage();
+  else if (page === 'employeeReport' && isAdmin) mc.innerHTML = employeeReportPage();
+  else if (page === 'myRecords') mc.innerHTML = myRecordsPage();
+}
+
+// ===== ADMIN OVERVIEW =====
+function adminOverview() {
+  const v = [...new Set(trainings.map(t=>t.vertical).filter(Boolean))].length;
+  const avg = employees.length ? Math.round(employees.reduce((a,b)=>a+Number(b.score||0),0)/employees.length) : 0;
+  const rows = trainings.slice(-5).reverse().map(t=>`<tr>
+    <td>${t.date||'—'}</td><td>${t.time||'—'}</td><td>${t.location||'—'}</td>
+    <td><span class="badge badge-blue">${t.vertical||'—'}</span></td>
+    <td>${t.horizontal||'—'}</td><td>${t.project||'—'}</td>
+  </tr>`).join('') || `<tr><td colspan="6"><div class="empty-state"><div class="icon">📋</div><p>No trainings yet. Click Add Training to begin.</p></div></td></tr>`;
+  return `
+    <div class="topbar"><div><h1 class="page-title">Dashboard Overview</h1><p class="page-subtitle">Welcome back, ${currentUser.name}</p></div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon-wrap">📅</div><div class="stat-value">${trainings.length}</div><div class="stat-label">Total Trainings</div></div>
+      <div class="stat-card purple"><div class="stat-icon-wrap">👥</div><div class="stat-value">${employees.length}</div><div class="stat-label">Employee Records</div></div>
+      <div class="stat-card green"><div class="stat-icon-wrap">🏆</div><div class="stat-value">${avg ? avg+'%' : '—'}</div><div class="stat-label">Avg. Learning Score</div></div>
+      <div class="stat-card orange"><div class="stat-icon-wrap">🏢</div><div class="stat-value">${v}</div><div class="stat-label">Verticals Covered</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="mini-chart"><div class="card-title">Trainings by Month</div>
+        <div class="chart-bars"><div class="chart-bar" style="height:40%"></div><div class="chart-bar" style="height:65%"></div><div class="chart-bar" style="height:45%"></div><div class="chart-bar" style="height:85%"></div><div class="chart-bar" style="height:55%"></div><div class="chart-bar" style="height:75%"></div></div>
+        <div class="chart-labels"><div class="chart-label">Oct</div><div class="chart-label">Nov</div><div class="chart-label">Dec</div><div class="chart-label">Jan</div><div class="chart-label">Feb</div><div class="chart-label">Mar</div></div>
+      </div>
+      <div class="mini-chart"><div class="card-title">Top Platforms</div>
+        <div class="vertical-bars">
+          <div class="v-bar-row"><div class="v-bar-label">LinkedIn L.</div><div class="v-bar-track"><div class="v-bar-fill" style="width:80%"></div></div><div class="v-bar-val">80%</div></div>
+          <div class="v-bar-row"><div class="v-bar-label">Coursera</div><div class="v-bar-track"><div class="v-bar-fill" style="width:60%"></div></div><div class="v-bar-val">60%</div></div>
+          <div class="v-bar-row"><div class="v-bar-label">Internal</div><div class="v-bar-track"><div class="v-bar-fill" style="width:45%"></div></div><div class="v-bar-val">45%</div></div>
+          <div class="v-bar-row"><div class="v-bar-label">Udemy</div><div class="v-bar-track"><div class="v-bar-fill" style="width:30%"></div></div><div class="v-bar-val">30%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div><div class="card-title">Recent Trainings</div><div class="card-subtitle">Last 5 sessions added</div></div>
+      <button class="btn-accent" onclick="renderContent('addTraining',null)">+ Add Training</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Location</th><th>Vertical</th><th>Horizontal</th><th>Project</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+
+// ===== USER OVERVIEW =====
+function userOverview() {
+  const myRecs = employees.filter(e => e.empId.toString().toUpperCase() === currentUser.empId.toString().toUpperCase());
+  const avg = myRecs.length ? Math.round(myRecs.reduce((a,b)=>a+Number(b.score||0),0)/myRecs.length) : 0;
+  const best = myRecs.length ? Math.max(...myRecs.map(e=>Number(e.score||0))) : 0;
+  const recentRows = myRecs.slice(-3).reverse().map(e=>`<tr>
+    <td style="font-weight:600">${e.course||'—'}</td>
+    <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${e.score}%;background:${Number(e.score)>=80?'#059669':Number(e.score)>=60?'#D97706':'#DC2626'}"></div></div><span style="font-size:0.78rem;font-weight:700;color:${Number(e.score)>=80?'#059669':Number(e.score)>=60?'#D97706':'#DC2626'}">${e.score}%</span></div></td>
+    <td><span class="badge badge-orange">${e.platform||'—'}</span></td>
+    <td>${e.date||'—'}</td>
+    <td>${e.cert?`<a href="${e.cert}" target="_blank" class="cert-link">🔗 View</a>`:'<span style="color:var(--text3);font-size:0.78rem">N/A</span>'}</td>
+  </tr>`).join('') || `<tr><td colspan="5"><div class="empty-state"><div class="icon">📚</div><p>No records yet for Employee ID: ${currentUser.empId}.<br>Your admin will add your records soon.</p></div></td></tr>`;
+  return `
+    <div class="topbar"><div><h1 class="page-title">My Dashboard</h1><p class="page-subtitle">Employee view — ${currentUser.empId}</p></div></div>
+    <div class="welcome-banner">
+      <div><div class="wb-title">Hello, ${currentUser.name}! 👋</div><div class="wb-sub">Here's your personal learning summary</div></div>
+      <div class="wb-badge">👤 Employee</div>
+    </div>
+    <div class="stats-grid-user">
+      <div class="stat-card blue"><div class="stat-icon-wrap">📚</div><div class="stat-value">${myRecs.length}</div><div class="stat-label">Courses Completed</div></div>
+      <div class="stat-card green"><div class="stat-icon-wrap">🏆</div><div class="stat-value">${avg ? avg+'%' : '—'}</div><div class="stat-label">My Avg. Score</div></div>
+      <div class="stat-card purple"><div class="stat-icon-wrap">⭐</div><div class="stat-value">${best ? best+'%' : '—'}</div><div class="stat-label">Best Score</div></div>
+    </div>
+    <div class="info-box orange"><span class="info-icon">🔒</span><div><strong>Employee View Active</strong> — Add/Edit features are restricted to administrators only.</div></div>
+    <div class="card"><div class="card-header"><div><div class="card-title">My Recent Training Records</div><div class="card-subtitle">Last 3 completed courses</div></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Course</th><th>Score</th><th>Platform</th><th>Date</th><th>Certificate</th></tr></thead><tbody>${recentRows}</tbody></table></div>
+    </div>`;
+}
+
+// ===== ADD TRAINING =====
+function addTrainingPage() {
+  return `
+    <div class="topbar"><div><h1 class="page-title">Add Training Session</h1><p class="page-subtitle">Input new training information</p></div></div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Training Details</div><div class="card-subtitle">Fields marked * are required</div></div></div>
+      <div class="form-grid">
+        <div class="form-group-inline"><label class="form-label">Date *</label><input type="date" class="form-input" id="tDate"></div>
+        <div class="form-group-inline"><label class="form-label">Time *</label><input type="time" class="form-input" id="tTime"></div>
+        <div class="form-group-inline"><label class="form-label">Location *</label><input type="text" class="form-input" id="tLocation" placeholder="Pune Office / Virtual / Hybrid"></div>
+        <div class="form-group-inline"><label class="form-label">Vertical *</label>
+          <select class="form-input" id="tVertical"><option value="">Select Vertical</option><option>IT</option><option>Healthcare</option><option>BFSI</option><option>Manufacturing</option><option>EdTech</option><option>Sales</option><option>Operations</option><option>HR</option></select>
+        </div>
+        <div class="form-group-inline"><label class="form-label">Horizontal *</label><input type="text" class="form-input" id="tHorizontal" placeholder="e.g. Leadership, Soft Skills, Technical"></div>
+        <div class="form-group-inline"><label class="form-label">Project *</label><input type="text" class="form-input" id="tProject" placeholder="e.g. Campus to Corporate 2025"></div>
+        <div class="form-group-inline form-full"><label class="form-label">Description</label><textarea class="form-input" id="tDesc" placeholder="Brief description of the training..."></textarea></div>
+        <div class="form-group-inline"><label class="form-label">Trainer Name</label><input type="text" class="form-input" id="tTrainer" placeholder="Facilitator name"></div>
+        <div class="form-group-inline"><label class="form-label">Expected Participants</label><input type="number" class="form-input" id="tParticipants" placeholder="e.g. 25"></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn-secondary" onclick="clearForm(['tDate','tTime','tLocation','tVertical','tHorizontal','tProject','tDesc','tTrainer','tParticipants'])">🗑 Clear</button>
+        <button class="btn-accent" onclick="saveTraining()">💾 Save Training</button>
+      </div>
+    </div>`;
+}
+
+function saveTraining() {
+  const req = ['tDate','tTime','tLocation','tVertical','tHorizontal','tProject'];
+  for (const id of req) { if (!document.getElementById(id)?.value) { showToast('⚠️ Please fill all required fields.', true); return; } }
+  trainings.push({
+    id: Date.now(),
+    date: document.getElementById('tDate').value,
+    time: document.getElementById('tTime').value,
+    location: document.getElementById('tLocation').value,
+    vertical: document.getElementById('tVertical').value,
+    horizontal: document.getElementById('tHorizontal').value,
+    project: document.getElementById('tProject').value,
+    description: document.getElementById('tDesc').value,
+    trainer: document.getElementById('tTrainer').value,
+    participants: document.getElementById('tParticipants').value
+  });
+  localStorage.setItem('tiq_trainings', JSON.stringify(trainings));
+  showToast('✅ Training saved successfully!');
+  renderContent('addTraining');
+}
+
+// ===== ADD EMPLOYEE =====
+function addEmployeePage() {
+  return `
+    <div class="topbar"><div><h1 class="page-title">Add Employee Record</h1><p class="page-subtitle">Log employee training completion</p></div></div>
+    <div class="info-box blue"><span class="info-icon">💡</span><div>The <strong>Employee ID</strong> you enter here is what employees use to log in. Make sure it matches exactly.</div></div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Employee Training Details</div><div class="card-subtitle">Fields marked * are required</div></div></div>
+      <div class="form-grid three">
+        <div class="form-group-inline"><label class="form-label">Employee ID *</label><input type="text" class="form-input" id="eId" placeholder="e.g. EMP001"></div>
+        <div class="form-group-inline"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="eName" placeholder="Employee full name"></div>
+        <div class="form-group-inline"><label class="form-label">Email ID *</label><input type="email" class="form-input" id="eEmail" placeholder="emp@company.com"></div>
+        <div class="form-group-inline"><label class="form-label">Course Name *</label><input type="text" class="form-input" id="eCourse" placeholder="e.g. Agentic AI Fundamentals"></div>
+        <div class="form-group-inline"><label class="form-label">Learning Score (%) *</label><input type="number" class="form-input" id="eScore" placeholder="0–100" min="0" max="100"></div>
+        <div class="form-group-inline"><label class="form-label">Platform *</label>
+          <select class="form-input" id="ePlatform"><option value="">Select Platform</option><option>LinkedIn Learning</option><option>Coursera</option><option>Udemy</option><option>Internal LMS</option><option>Google Digital Garage</option><option>Microsoft Learn</option><option>Other</option></select>
+        </div>
+        <div class="form-group-inline"><label class="form-label">Completion Date *</label><input type="date" class="form-input" id="eDate"></div>
+        <div class="form-group-inline"><label class="form-label">Completion Time</label><input type="time" class="form-input" id="eTime"></div>
+        <div class="form-group-inline"><label class="form-label">Department</label><input type="text" class="form-input" id="eDept" placeholder="e.g. L&D, HR, Tech"></div>
+        <div class="form-group-inline form-full"><label class="form-label">Certificate Link</label><input type="url" class="form-input" id="eCert" placeholder="https://your-certificate-link.com"></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn-secondary" onclick="clearForm(['eId','eName','eEmail','eCourse','eScore','ePlatform','eDate','eTime','eDept','eCert'])">🗑 Clear</button>
+        <button class="btn-accent" onclick="saveEmployee()">💾 Save Record</button>
+      </div>
+    </div>`;
+}
+
+function saveEmployee() {
+  const req = ['eId','eName','eEmail','eCourse','eScore','ePlatform','eDate'];
+  for (const id of req) { if (!document.getElementById(id)?.value) { showToast('⚠️ Please fill all required fields.', true); return; } }
+  employees.push({
+    id: Date.now(),
+    empId: document.getElementById('eId').value,
+    name: document.getElementById('eName').value,
+    email: document.getElementById('eEmail').value,
+    course: document.getElementById('eCourse').value,
+    score: document.getElementById('eScore').value,
+    platform: document.getElementById('ePlatform').value,
+    date: document.getElementById('eDate').value,
+    time: document.getElementById('eTime').value,
+    dept: document.getElementById('eDept').value,
+    cert: document.getElementById('eCert').value
+  });
+  localStorage.setItem('tiq_employees', JSON.stringify(employees));
+  showToast('✅ Employee record saved!');
+  renderContent('addEmployee');
+}
+
+// ===== TRAINING REPORT =====
+function trainingReportPage() {
+  const isAdmin = currentUser.role === 'admin';
+  const cols = isAdmin ? 9 : 8;
+  const rows = trainings.map((t,i)=>`<tr>
+    <td><span style="color:var(--text3);font-weight:600">${i+1}</span></td>
+    <td>${t.date||'—'}</td><td>${t.time||'—'}</td><td>${t.location||'—'}</td>
+    <td><span class="badge badge-blue">${t.vertical||'—'}</span></td>
+    <td>${t.horizontal||'—'}</td><td>${t.project||'—'}</td><td>${t.trainer||'—'}</td>
+    ${isAdmin?`<td><button class="btn-delete" onclick="delTraining(${t.id})">🗑</button></td>`:''}
+  </tr>`).join('') || `<tr><td colspan="${cols}"><div class="empty-state"><div class="icon">📋</div><p>No training records yet.</p></div></td></tr>`;
+  return `
+    <div class="topbar">
+      <div><h1 class="page-title">Training Report</h1><p class="page-subtitle">${isAdmin?'All training sessions':'View training schedule'}</p></div>
+      <div class="topbar-actions">
+        <button class="btn-green" onclick="dlTrainingExcel()">📊 Export Excel</button>
+        <button class="btn-orange" onclick="dlTrainingPDF()">📄 Export PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-actions">
+        <input type="text" class="table-search" placeholder="🔍  Search trainings..." oninput="filterTrainingTable(this)">
+        <span style="font-size:0.78rem;color:var(--text2);font-weight:600">Total: <strong style="color:var(--accent)">${trainings.length}</strong> records</span>
+      </div>
+      <div class="table-wrap" id="trainingTableWrap">
+        <table><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Location</th><th>Vertical</th><th>Horizontal</th><th>Project</th><th>Trainer</th>${isAdmin?'<th></th>':''}</tr></thead>
+        <tbody id="tReportBody">${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+function filterTrainingTable(input) {
+  const q = input.value.toLowerCase();
+  const isAdmin = currentUser.role === 'admin';
+  const filtered = trainings.filter(t => Object.values(t).some(v=>String(v).toLowerCase().includes(q)));
+  document.getElementById('tReportBody').innerHTML = filtered.map((t,i)=>`<tr>
+    <td><span style="color:var(--text3);font-weight:600">${i+1}</span></td>
+    <td>${t.date||'—'}</td><td>${t.time||'—'}</td><td>${t.location||'—'}</td>
+    <td><span class="badge badge-blue">${t.vertical||'—'}</span></td>
+    <td>${t.horizontal||'—'}</td><td>${t.project||'—'}</td><td>${t.trainer||'—'}</td>
+    ${isAdmin?`<td><button class="btn-delete" onclick="delTraining(${t.id})">🗑</button></td>`:''}
+  </tr>`).join('') || `<tr><td colspan="9"><div class="empty-state"><div class="icon">🔍</div><p>No results found.</p></div></td></tr>`;
+}
+
+function delTraining(id) {
+  trainings = trainings.filter(t=>t.id!==id);
+  localStorage.setItem('tiq_trainings', JSON.stringify(trainings));
+  renderContent('trainingReport');
+  showToast('🗑 Record deleted.');
+}
+
+// ===== EMPLOYEE REPORT =====
+function employeeReportPage() {
+  const rows = employees.map((e,i)=>{
+    const s=Number(e.score||0);
+    const c=s>=80?'#059669':s>=60?'#D97706':'#DC2626';
+    return `<tr>
+      <td><span style="color:var(--text3);font-weight:600">${i+1}</span></td>
+      <td><span class="badge badge-purple">${e.empId||'—'}</span></td>
+      <td style="font-weight:700">${e.name||'—'}</td>
+      <td style="font-size:0.78rem;color:var(--text2)">${e.email||'—'}</td>
+      <td>${e.course||'—'}</td>
+      <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${s}%;background:${c}"></div></div><span style="font-size:0.78rem;color:${c};font-weight:700">${s}%</span></div></td>
+      <td><span class="badge badge-orange">${e.platform||'—'}</span></td>
+      <td>${e.date||'—'}</td>
+      <td>${e.cert?`<a href="${e.cert}" target="_blank" class="cert-link">🔗 View</a>`:'<span style="color:var(--text3);font-size:0.78rem">N/A</span>'}</td>
+      <td><button class="btn-delete" onclick="delEmployee(${e.id})">🗑</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10"><div class="empty-state"><div class="icon">🧑‍💼</div><p>No employee records yet.</p></div></td></tr>`;
+  return `
+    <div class="topbar">
+      <div><h1 class="page-title">Employee Training Report</h1><p class="page-subtitle">All employee learning records</p></div>
+      <div class="topbar-actions">
+        <button class="btn-green" onclick="dlEmpExcel()">📊 Export Excel</button>
+        <button class="btn-orange" onclick="dlEmpPDF()">📄 Export PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-actions">
+        <input type="text" class="table-search" placeholder="🔍  Search employees..." oninput="filterEmpTable(this)">
+        <span style="font-size:0.78rem;color:var(--text2);font-weight:600">Total: <strong style="color:var(--accent)">${employees.length}</strong> records</span>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>#</th><th>Emp ID</th><th>Name</th><th>Email</th><th>Course</th><th>Score</th><th>Platform</th><th>Date</th><th>Certificate</th><th></th></tr></thead>
+        <tbody id="eReportBody">${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+function filterEmpTable(input) {
+  const q = input.value.toLowerCase();
+  const filtered = employees.filter(e => Object.values(e).some(v=>String(v).toLowerCase().includes(q)));
+  document.getElementById('eReportBody').innerHTML = filtered.map((e,i)=>{
+    const s=Number(e.score||0); const c=s>=80?'#059669':s>=60?'#D97706':'#DC2626';
+    return `<tr>
+      <td>${i+1}</td><td><span class="badge badge-purple">${e.empId}</span></td>
+      <td style="font-weight:700">${e.name}</td><td style="font-size:0.78rem;color:var(--text2)">${e.email}</td>
+      <td>${e.course}</td>
+      <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${s}%;background:${c}"></div></div><span style="font-size:0.78rem;color:${c};font-weight:700">${s}%</span></div></td>
+      <td><span class="badge badge-orange">${e.platform}</span></td><td>${e.date}</td>
+      <td>${e.cert?`<a href="${e.cert}" target="_blank" class="cert-link">🔗 View</a>`:'N/A'}</td>
+      <td><button class="btn-delete" onclick="delEmployee(${e.id})">🗑</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10"><div class="empty-state"><div class="icon">🔍</div><p>No results found.</p></div></td></tr>`;
+}
+
+function delEmployee(id) {
+  employees = employees.filter(e=>e.id!==id);
+  localStorage.setItem('tiq_employees', JSON.stringify(employees));
+  renderContent('employeeReport');
+  showToast('🗑 Record deleted.');
+}
+
+// ===== MY RECORDS =====
+function myRecordsPage() {
+  const myRecs = employees.filter(e => e.empId.toString().toUpperCase() === currentUser.empId.toString().toUpperCase());
+  const rows = myRecs.map((e,i)=>{
+    const s=Number(e.score||0); const c=s>=80?'#059669':s>=60?'#D97706':'#DC2626';
+    return `<tr>
+      <td>${i+1}</td><td style="font-weight:700">${e.course||'—'}</td>
+      <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${s}%;background:${c}"></div></div><span style="font-size:0.78rem;color:${c};font-weight:700">${s}%</span></div></td>
+      <td><span class="badge badge-orange">${e.platform||'—'}</span></td>
+      <td>${e.date||'—'}</td>
+      <td>${e.cert?`<a href="${e.cert}" target="_blank" class="cert-link">🔗 View</a>`:'<span style="color:var(--text3)">N/A</span>'}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="6"><div class="empty-state"><div class="icon">📚</div><p>No records found for Employee ID: ${currentUser.empId}.<br>Contact your admin to add your training records.</p></div></td></tr>`;
+  return `
+    <div class="topbar">
+      <div><h1 class="page-title">My Training Records</h1><p class="page-subtitle">${currentUser.name} — ${currentUser.empId}</p></div>
+      <div class="topbar-actions">
+        <button class="btn-green" onclick="dlMyExcel()">📊 Export Excel</button>
+        <button class="btn-orange" onclick="dlMyPDF()">📄 Export PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Course</th><th>Score</th><th>Platform</th><th>Date</th><th>Certificate</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ===== UTILS =====
+function clearForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if(el) el.value=''; }); }
+
+// ===== EXCEL =====
+function dlTrainingExcel() {
+  if(!trainings.length){showToast('⚠️ No data to export.',true);return;}
+  const ws=XLSX.utils.json_to_sheet(trainings.map((t,i)=>({'#':i+1,'Date':t.date,'Time':t.time,'Location':t.location,'Vertical':t.vertical,'Horizontal':t.horizontal,'Project':t.project,'Trainer':t.trainer||''})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Training Report');
+  XLSX.writeFile(wb,'Training_Report.xlsx');showToast('📊 Excel downloaded!');
+}
+function dlEmpExcel() {
+  if(!employees.length){showToast('⚠️ No data to export.',true);return;}
+  const ws=XLSX.utils.json_to_sheet(employees.map((e,i)=>({'#':i+1,'Emp ID':e.empId,'Name':e.name,'Email':e.email,'Course':e.course,'Score':e.score+'%','Platform':e.platform,'Date':e.date,'Certificate':e.cert||''})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Employee Report');
+  XLSX.writeFile(wb,'Employee_Training_Report.xlsx');showToast('📊 Excel downloaded!');
+}
+function dlMyExcel() {
+  const r=employees.filter(e=>e.empId.toString().toUpperCase()===currentUser.empId.toString().toUpperCase());
+  if(!r.length){showToast('⚠️ No records found.',true);return;}
+  const ws=XLSX.utils.json_to_sheet(r.map((e,i)=>({'#':i+1,'Course':e.course,'Score':e.score+'%','Platform':e.platform,'Date':e.date,'Certificate':e.cert||''})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'My Records');
+  XLSX.writeFile(wb,'My_Training_Records.xlsx');showToast('📊 Excel downloaded!');
+}
+
+// ===== PDF =====
+function printPDF(title, html) {
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:2rem;color:#111}h1{font-size:1.4rem;color:#2563EB;margin-bottom:0.5rem}p{font-size:0.8rem;color:#666;margin-bottom:1.5rem}table{width:100%;border-collapse:collapse}th,td{padding:8px;border:1px solid #e2e8f0;text-align:left;font-size:11px}thead{background:#2563EB;color:#fff}tr:nth-child(even){background:#f8faff}</style></head><body><h1>TrainIQ — ${title}</h1><p>Generated: ${new Date().toLocaleString()}</p>${html}</body></html>`);
+  w.document.close();setTimeout(()=>w.print(),500);showToast('📄 PDF ready!');
+}
+function dlTrainingPDF() {
+  if(!trainings.length){showToast('⚠️ No data.',true);return;}
+  printPDF('Training Report',`<table><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Location</th><th>Vertical</th><th>Horizontal</th><th>Project</th><th>Trainer</th></tr></thead><tbody>${trainings.map((t,i)=>`<tr><td>${i+1}</td><td>${t.date}</td><td>${t.time}</td><td>${t.location}</td><td>${t.vertical}</td><td>${t.horizontal}</td><td>${t.project}</td><td>${t.trainer||''}</td></tr>`).join('')}</tbody></table>`);
+}
+function dlEmpPDF() {
+  if(!employees.length){showToast('⚠️ No data.',true);return;}
+  printPDF('Employee Training Report',`<table><thead><tr><th>#</th><th>Emp ID</th><th>Name</th><th>Email</th><th>Course</th><th>Score</th><th>Platform</th><th>Date</th></tr></thead><tbody>${employees.map((e,i)=>`<tr><td>${i+1}</td><td>${e.empId}</td><td>${e.name}</td><td>${e.email}</td><td>${e.course}</td><td>${e.score}%</td><td>${e.platform}</td><td>${e.date}</td></tr>`).join('')}</tbody></table>`);
+}
+function dlMyPDF() {
+  const r=employees.filter(e=>e.empId.toString().toUpperCase()===currentUser.empId.toString().toUpperCase());
+  if(!r.length){showToast('⚠️ No records.',true);return;}
+  printPDF(`My Records — ${currentUser.name}`,`<table><thead><tr><th>#</th><th>Course</th><th>Score</th><th>Platform</th><th>Date</th></tr></thead><tbody>${r.map((e,i)=>`<tr><td>${i+1}</td><td>${e.course}</td><td>${e.score}%</td><td>${e.platform}</td><td>${e.date}</td></tr>`).join('')}</tbody></table>`);
+}
+
+// ===== TOAST =====
+function showToast(msg, warn) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.borderColor=warn?'#F59E0B':'#059669';
+  t.style.color=warn?'#D97706':'#059669';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
